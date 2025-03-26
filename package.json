@@ -1,15 +1,12 @@
 {
-    "name": "my-proxy-app",
+    "name": "node-proxy",
     "version": "1.0.0",
+    "description": "A Node.js proxy server supporting HTTP and CONNECT (HTTPS) requests",
+    "main": "proxy.js",
     "scripts": {
-      "dev": "next dev",
-      "build": "next build",
-      "start": "next start"
+      "start": "node proxy.js"
     },
-    "dependencies": {
-      "next": "latest",
-      "react": "latest",
-      "react-dom": "latest"
-    }
+    "author": "",
+    "license": "ISC"
   }
   

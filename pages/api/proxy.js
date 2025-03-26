@@ -2,14 +2,14 @@
 
 import { addLog } from "../../lib/logs";
 
-// 禁用 Next.js 自带的 bodyParser，确保我们可以手动读取原始请求体
+// 为了手动处理请求体，关闭 Next.js 内部的 bodyParser
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-// 辅助函数：将 Readable stream 中的数据合并为 Buffer
+// 辅助函数：将 Readable stream 数据合并为 Buffer
 async function getRawBody(readable) {
   const chunks = [];
   for await (const chunk of readable) {
@@ -19,7 +19,7 @@ async function getRawBody(readable) {
 }
 
 export default async function handler(req, res) {
-  // 将当前请求记录到日志中
+  // 将请求详细信息记录到日志
   addLog({
     method: req.method,
     url: req.url,
@@ -27,13 +27,41 @@ export default async function handler(req, res) {
     timestamp: Date.now(),
   });
 
-  // 从查询参数获取目标 URL，例如：/api/proxy?target=https://example.com/api
-  const { target } = req.query;
-  if (!target) {
-    return res.status(400).json({ error: "缺少 target 查询参数" });
+  // 获取请求中的 target 与 path 参数
+  const { target, path, ...restQuery } = req.query;
+  // 首先尝试使用 query 参数中的 target，否则使用环境变量 TARGET_URL
+  let targetUrl = target || process.env.TARGET_URL;
+  if (!targetUrl) {
+    return res.status(400).json({
+      error: "缺少 target 参数，并且未设置环境变量 TARGET_URL 作为默认代理目标"
+    });
   }
 
-  // 如果请求不是 GET/HEAD，则读取请求体（此处简单处理，不考虑大体积数据）
+  // 如果包含 path 参数，则将其追加到目标 URL 后（注意处理斜杠）
+  if (path) {
+    if (targetUrl.endsWith("/")) {
+      targetUrl = targetUrl.slice(0, -1);
+    }
+    if (!path.startsWith("/")) {
+      targetUrl = targetUrl + "/" + path;
+    } else {
+      targetUrl = targetUrl + path;
+    }
+  }
+
+  // 如果需要进一步转发 query 参数（除了 target 与 path 外）可在此步骤处理
+  // 例如：将剩余的查询参数追加到目标 URL 上
+  const queryKeys = Object.keys(restQuery);
+  if (queryKeys.length > 0) {
+    const urlObj = new URL(targetUrl);
+    for (const key of queryKeys) {
+      // 这里简单地添加所有剩余查询参数，实际可根据需求过滤或处理
+      urlObj.searchParams.append(key, restQuery[key]);
+    }
+    targetUrl = urlObj.toString();
+  }
+
+  // 针对非 GET/HEAD 请求，读取请求体（以 Buffer 形式传递）
   let body;
   if (req.method !== "GET" && req.method !== "HEAD") {
     try {
@@ -44,20 +72,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 转发请求到 target URL
-    const fetchResponse = await fetch(target, {
+    // 转发请求到目标服务器
+    const fetchResponse = await fetch(targetUrl, {
       method: req.method,
-      // 可选择性转发头信息，但一般需去掉或修改 Host 等字段
-      headers: { ...req.headers, host: new URL(target).host },
+      // 转发 headers 时可以去除或修改部分字段
+      headers: { ...req.headers, host: new URL(targetUrl).host },
       body: body,
-      // 请求重定向等选项可根据需求配置
       redirect: "manual",
     });
 
-    // 将被代理的响应数据取出
+    // 获取响应数据后返回给客户端
     const responseBuffer = Buffer.from(await fetchResponse.arrayBuffer());
-
-    // 将响应头复制（注意：有些头不适合直接复制）
     fetchResponse.headers.forEach((value, key) => {
       res.setHeader(key, value);
     });

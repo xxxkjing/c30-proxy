@@ -1,7 +1,7 @@
 {
     "version": 2,
     "env": {
-      "TARGET_URL": "https://example.com",
+      "TARGET_URL": "https://baidu.com",
       "PORT": "80"
     },
     "builds": [

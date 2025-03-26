@@ -2,14 +2,14 @@
 
 import { addLog } from "../../lib/logs";
 
-// 为了手动处理请求体，关闭 Next.js 内部的 bodyParser
+// 为了手动处理请求体，此处禁用 Next.js 内置的 bodyParser
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-// 辅助函数：将 Readable stream 数据合并为 Buffer
+// 辅助函数：聚合 Readable stream 中的数据为 Buffer
 async function getRawBody(readable) {
   const chunks = [];
   for await (const chunk of readable) {
@@ -19,7 +19,7 @@ async function getRawBody(readable) {
 }
 
 export default async function handler(req, res) {
-  // 将请求详细信息记录到日志
+  // 将请求信息记录到日志中
   addLog({
     method: req.method,
     url: req.url,
@@ -27,41 +27,16 @@ export default async function handler(req, res) {
     timestamp: Date.now(),
   });
 
-  // 获取请求中的 target 与 path 参数
-  const { target, path, ...restQuery } = req.query;
-  // 首先尝试使用 query 参数中的 target，否则使用环境变量 TARGET_URL
-  let targetUrl = target || process.env.TARGET_URL;
+  // 固定目标地址由环境变量 TARGET_URL 指定
+  const targetUrl = process.env.TARGET_URL;
   if (!targetUrl) {
     return res.status(400).json({
-      error: "缺少 target 参数，并且未设置环境变量 TARGET_URL 作为默认代理目标"
+      error:
+        "未设置环境变量 TARGET_URL。请在 Vercel 控制台中配置 TARGET_URL 为目标地址，例如 https://example.com",
     });
   }
 
-  // 如果包含 path 参数，则将其追加到目标 URL 后（注意处理斜杠）
-  if (path) {
-    if (targetUrl.endsWith("/")) {
-      targetUrl = targetUrl.slice(0, -1);
-    }
-    if (!path.startsWith("/")) {
-      targetUrl = targetUrl + "/" + path;
-    } else {
-      targetUrl = targetUrl + path;
-    }
-  }
-
-  // 如果需要进一步转发 query 参数（除了 target 与 path 外）可在此步骤处理
-  // 例如：将剩余的查询参数追加到目标 URL 上
-  const queryKeys = Object.keys(restQuery);
-  if (queryKeys.length > 0) {
-    const urlObj = new URL(targetUrl);
-    for (const key of queryKeys) {
-      // 这里简单地添加所有剩余查询参数，实际可根据需求过滤或处理
-      urlObj.searchParams.append(key, restQuery[key]);
-    }
-    targetUrl = urlObj.toString();
-  }
-
-  // 针对非 GET/HEAD 请求，读取请求体（以 Buffer 形式传递）
+  // 对于非 GET/HEAD 请求，尝试读取请求体
   let body;
   if (req.method !== "GET" && req.method !== "HEAD") {
     try {
@@ -72,16 +47,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 转发请求到目标服务器
+    // 发起转发请求。注意：这里不处理原始请求路径，始终以 TARGET_URL 为入口。
     const fetchResponse = await fetch(targetUrl, {
       method: req.method,
-      // 转发 headers 时可以去除或修改部分字段
       headers: { ...req.headers, host: new URL(targetUrl).host },
       body: body,
       redirect: "manual",
     });
 
-    // 获取响应数据后返回给客户端
+    // 读取返回数据并转发给客户端
     const responseBuffer = Buffer.from(await fetchResponse.arrayBuffer());
     fetchResponse.headers.forEach((value, key) => {
       res.setHeader(key, value);

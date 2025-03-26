@@ -20,12 +20,14 @@ export default function Home() {
     <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
       <h1>代理服务器日志</h1>
       <p>
-        所有请求都将统一转发到指定目标。请在 Vercel 环境变量中配置 <code>TARGET_URL</code>
+        无论访问哪个网页，都会由代理服务器转发到配置的目标地址。请确保已在
+        Vercel 控制台设置 <code>TARGET_URL</code>。
       </p>
       <ul>
         {logs.map((log, index) => (
           <li key={index}>
-            [{new Date(log.timestamp).toLocaleString()}] {log.method} {log.url}
+            [{new Date(log.timestamp).toLocaleString()}] {log.method}{" "}
+            {log.url}
           </li>
         ))}
       </ul>

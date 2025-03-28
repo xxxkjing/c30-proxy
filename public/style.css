@@ -1,0 +1,76 @@
+:root {
+    --primary: #3B82F6;
+    --background: #F8FAFC;
+    --text: #1E293B;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    margin: 0;
+    padding: 2rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.request-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.method {
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.method.GET { background: #DCFCE7; color: #166534; }
+.method.POST { background: #DBEAFE; color: #1E40AF; }
+.method.PUT { background: #FEF3C7; color: #854D0E; }
+.method.DELETE { background: #FEE2E2; color: #991B1B; }
+
+.domain {
+    font-weight: 500;
+    color: var(--primary);
+}
+
+.path {
+    color: #64748B;
+    font-family: monospace;
+    word-break: break-all;
+}
+
+.meta {
+    font-size: 0.875rem;
+    color: #64748B;
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.refresh-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}

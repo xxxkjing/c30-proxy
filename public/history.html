@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request History</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Proxy Request History</h1>
+        <div class="refresh-controls">
+            <button onclick="loadData()">🔄 Refresh</button>
+            <span class="update-status">Last updated: <span id="lastUpdate">-</span></span>
+        </div>
+        <div id="requestList"></div>
+    </div>
+
+    <script>
+        function formatTime(dateStr) {
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            return new Date(dateStr).toLocaleString('en-US', options);
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch('/api/history');
+                const { data } = await response.json();
+                
+                document.getElementById('requestList').innerHTML = data.map(item => `
+                    <div class="request-card">
+                        <div class="method ${item.method}">${item.method}</div>
+                        <div class="request-info">
+                            <div class="domain">${item.domain}</div>
+                            <div class="path">${item.path}</div>
+                            <div class="meta">
+                                <span class="time">${formatTime(item.time)}</span>
+                                <span class="ip">${item.client_ip}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('lastUpdate').textContent = formatTime(new Date());
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        // 初始加载 + 每30秒自动刷新
+        loadData();
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>

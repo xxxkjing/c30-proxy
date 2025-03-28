@@ -1,12 +1,12 @@
 {
-    "name": "node-proxy",
+    "name": "vercel-proxy",
     "version": "1.0.0",
-    "description": "A Node.js proxy server supporting HTTP and CONNECT (HTTPS) requests",
-    "main": "proxy.js",
-    "scripts": {
-      "start": "node proxy.js"
+    "dependencies": {
+      "@vercel/postgres": "^1.0.0",
+      "http-proxy-middleware": "^2.0.6"
     },
-    "author": "",
-    "license": "ISC"
+    "scripts": {
+      "dev": "vercel dev"
+    }
   }
   

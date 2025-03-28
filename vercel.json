@@ -1,19 +1,17 @@
 {
     "version": 2,
-    "env": {
-      "TARGET_URL": "https://baidu.com",
-      "PORT": "80"
-    },
-    "builds": [
-      {
-        "src": "proxy.js",
-        "use": "@vercel/node"
-      }
-    ],
     "routes": [
       {
-        "src": "/(.*)",
-        "dest": "/proxy.js"
+        "src": "/api/proxy/(.*)",
+        "dest": "/api/proxy/[[...slug]]"
+      },
+      {
+        "src": "/history",
+        "dest": "/history.html"
+      },
+      {
+        "src": "/styles.css",
+        "dest": "/styles.css"
       }
     ]
   }

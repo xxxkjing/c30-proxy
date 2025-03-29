@@ -1,18 +1,25 @@
 {
-    "version": 2,
-    "routes": [
-      {
-        "src": "/api/proxy/(.*)",
-        "dest": "/api/proxy/[[...slug]]"
-      },
-      {
-        "src": "/history",
-        "dest": "/history.html"
-      },
-      {
-        "src": "/styles.css",
-        "dest": "/styles.css"
-      }
-    ]
-  }
-  
+  "version": 2,
+  "routes": [
+    {
+      "src": "/api/stats",
+      "dest": "/api/stats.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/proxy.js"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/public/dashboard.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
+    }
+  ]
+}

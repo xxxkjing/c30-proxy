@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Traffic Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .log-table { width: 100%; border-collapse: collapse; }
+        .log-table th, .log-table td { 
+            border: 1px solid #ddd; 
+            padding: 12px;
+            text-align: left;
+        }
+        .log-table tr:nth-child(even) { background-color: #f2f2f2; }
+        .status-proxied { color: #4CAF50; }
+        .status-error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>Request Traffic Monitor</h1>
+    <table class="log-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Method</th>
+                <th>URL</th>
+                <th>IP</th>
+                <th>Status</th>
+                <th>User Agent</th>
+            </tr>
+        </thead>
+        <tbody id="logs-body">
+            <tr><td colspan="6">Loading data...</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        async function updateLogs() {
+            try {
+                const response = await fetch('/api/stats');
+                const { data } = await response.json();
+                
+                const tbody = document.getElementById('logs-body');
+                tbody.innerHTML = data.map(log => `
+                    <tr>
+                        <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        <td>${log.method}</td>
+                        <td>${log.url}</td>
+                        <td>${log.clientIP}</td>
+                        <td class="status-${log.status}">
+                            ${log.status.toUpperCase()} 
+                            ${log.statusCode ? `(${log.statusCode})` : ''}
+                        </td>
+                        <td>${log.userAgent}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // 每3秒更新数据
+        setInterval(updateLogs, 3000);
+        updateLogs();
+    </script>
+</body>
+</html>

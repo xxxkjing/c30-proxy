@@ -1,0 +1,10 @@
+{
+  "name": "render-node-port-forward",
+  "version": "1.0.0",
+  "description": "A simple Node.js project to forward requests on port 2025",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,7 @@
+name: render-node-port-forward
+service:
+  type: web
+  port: 2025
+  static_sites: false
+  allow_insecure: true
+  env: []
